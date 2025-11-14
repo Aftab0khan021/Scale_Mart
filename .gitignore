@@ -79,4 +79,8 @@ agenthub/agents/youtube/db
 # Mobile development
 android-sdk/ 
 
+# Ignore env files everywhere
 .env
+*.env
+frontend/.env
+backend/.env
