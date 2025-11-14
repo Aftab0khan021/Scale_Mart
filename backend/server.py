@@ -32,8 +32,8 @@ redis_client = redis.from_url(redis_url, decode_responses=True)
 # Celery configuration
 celery_app = Celery(
     'scalemart',
-    broker=f"{redis_url}/1",
-    backend=f"{redis_url}/2"
+    broker=f"{redis_url}/0", 
+    backend=f"{redis_url}/0"
 )
 
 celery_app.conf.update(
