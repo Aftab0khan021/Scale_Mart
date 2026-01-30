@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
-import '@/App.css';
+import './App.css';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import axios from 'axios';
 import { ShoppingCart, TrendingUp, Clock, Shield, Zap, BarChart3, Package, Users, DollarSign, Activity } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Button } from './components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './components/ui/card';
+import { Input } from './components/ui/input';
+import { Label } from './components/ui/label';
 import { toast } from 'sonner';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
+import { Badge } from './components/ui/badge';
+import { Progress } from './components/ui/progress';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -26,10 +26,10 @@ const AuthPage = ({ onLogin }) => {
     try {
       const endpoint = isLogin ? '/auth/login' : '/auth/signup';
       const response = await axios.post(`${API}${endpoint}`, formData);
-      
+
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
-      
+
       toast.success(isLogin ? 'Welcome back!' : 'Account created successfully!');
       onLogin(response.data.user, response.data.token);
     } catch (error) {
@@ -155,7 +155,7 @@ const ProductCard = ({ product, onBuy }) => {
           <Zap size={14} /> FLASH SALE - {product.discount_percent}% OFF
         </Badge>
       )}
-      
+
       <div className="product-image">
         <img src={product.image_url} alt={product.name} />
       </div>
@@ -253,7 +253,7 @@ const ProductCatalog = ({ token, user }) => {
         { product_id: product.id, quantity: 1 },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       toast.success(response.data.message);
       fetchProducts();
       fetchOrders();
@@ -427,7 +427,7 @@ const AdminDashboard = ({ token }) => {
   return (
     <div className="admin-dashboard" data-testid="admin-dashboard">
       <h2>Admin Dashboard</h2>
-      
+
       <div className="stats-grid">
         <Card className="stat-card">
           <CardHeader>
