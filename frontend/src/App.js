@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import './App.css';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import axios from 'axios';
 import { ShoppingCart, TrendingUp, Clock, Shield, Zap, BarChart3, Package, Users, DollarSign, Activity } from 'lucide-react';
 import { Button } from './components/ui/button';
@@ -220,6 +220,7 @@ const ProductCatalog = ({ token, user }) => {
     // Refresh products every 3 seconds for real-time updates
     const interval = setInterval(fetchProducts, 3000);
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view]);
 
   const fetchProducts = async () => {
@@ -394,6 +395,7 @@ const AdminDashboard = ({ token }) => {
     fetchStats();
     const interval = setInterval(fetchStats, 5000);
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchStats = async () => {
