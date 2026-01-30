@@ -1,0 +1,146 @@
+version: '3.8'
+
+services:
+  # Redis - In-memory cache and message broker
+  redis:
+    image: redis:7-alpine
+    container_name: scalemart-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: >
+      redis-server
+      --appendonly yes
+      --appendfsync everysec
+      --save 900 1
+      --save 300 10
+      --save 60 10000
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - scalemart-network
+
+  # MongoDB - Persistent database
+  mongodb:
+    image: mongo:6
+    container_name: scalemart-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: scalemart
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - scalemart-network
+
+  # Backend API - FastAPI application
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: scalemart-backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      redis:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    environment:
+      MONGO_URL: mongodb://mongodb:27017
+      REDIS_URL: redis://redis:6379
+      DB_NAME: scalemart
+      JWT_SECRET: ${JWT_SECRET:-change-this-secret-in-production}
+      CORS_ORIGINS: http://localhost:3000,http://frontend:3000
+    volumes:
+      - ./backend:/app
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - scalemart-network
+
+  # Celery Worker - Background task processor
+  celery:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: scalemart-celery
+    command: celery -A server.celery_app worker --loglevel=info --concurrency=4
+    depends_on:
+      redis:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    environment:
+      MONGO_URL: mongodb://mongodb:27017
+      REDIS_URL: redis://redis:6379
+      DB_NAME: scalemart
+    volumes:
+      - ./backend:/app
+    restart: unless-stopped
+    networks:
+      - scalemart-network
+
+  # Celery Flower - Monitoring UI for Celery
+  flower:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: scalemart-flower
+    command: celery -A server.celery_app flower --port=5555
+    ports:
+      - "5555:5555"
+    depends_on:
+      - redis
+      - celery
+    environment:
+      REDIS_URL: redis://redis:6379
+    restart: unless-stopped
+    networks:
+      - scalemart-network
+
+  # Frontend - React application
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: scalemart-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    environment:
+      REACT_APP_BACKEND_URL: http://localhost:8000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    restart: unless-stopped
+    networks:
+      - scalemart-network
+
+volumes:
+  redis_data:
+    driver: local
+  mongo_data:
+    driver: local
+
+networks:
+  scalemart-network:
+    driver: bridge

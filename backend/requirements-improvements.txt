@@ -1,0 +1,24 @@
+# Additional dependencies for improvements
+
+# WebSocket Support
+python-socketio==5.11.1
+python-socketio[asyncio]==5.11.1
+
+# Security
+python-multipart==0.0.9
+itsdangerous==2.1.2
+
+# Performance
+aiohttp==3.9.3
+aiocache==0.12.2
+orjson==3.9.15  # Faster JSON
+
+# Compression
+brotli==1.1.0
+
+# Validation
+email-validator==2.1.0.post1
+
+# Observability
+opentelemetry-api==1.22.0
+opentelemetry-sdk==1.22.0

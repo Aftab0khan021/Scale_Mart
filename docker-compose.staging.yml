@@ -1,0 +1,46 @@
+version: '3.8'
+
+# Staging environment configuration
+# Use with: docker-compose -f docker-compose.yml -f docker-compose.staging.yml up -d
+
+services:
+  backend:
+    environment:
+      - ENVIRONMENT=staging
+      - LOG_LEVEL=DEBUG
+      - SENTRY_DSN=${SENTRY_DSN_STAGING}
+      - SENTRY_TRACES_SAMPLE_RATE=0.5
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  celery:
+    environment:
+      - ENVIRONMENT=staging
+      - SENTRY_DSN=${SENTRY_DSN_STAGING}
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+
+  frontend:
+    environment:
+      - REACT_APP_BACKEND_URL=https://api-staging.yourdomain.com
+      - REACT_APP_ENVIRONMENT=staging
+
+  redis:
+    command: >
+      redis-server --appendonly yes --appendfsync everysec --maxmemory 512mb --maxmemory-policy allkeys-lru
+
+  mongodb:
+    volumes:
+      - mongo_staging_data:/data/db
+
+volumes:
+  mongo_staging_data:
+    driver: local
