@@ -52,9 +52,9 @@
     "workbox-streams": "^6.6.0"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
+    "start": "craco start",
+    "build": "craco build",
+    "test": "craco test",
     "eject": "react-scripts eject",
     "lint": "eslint src --ext .js,.jsx",
     "lint:fix": "eslint src --ext .js,.jsx --fix"
@@ -78,6 +78,7 @@
     ]
   },
   "devDependencies": {
+    "@craco/craco": "^7.1.0",
     "eslint": "^8.56.0",
     "eslint-config-react-app": "^7.0.1",
     "tailwindcss": "^3.4.1"
