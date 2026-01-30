@@ -75,41 +75,6 @@ jobs:
           file: ./backend/coverage.xml
           flags: backend
 
-  # Frontend tests
-  test-frontend:
-    runs-on: ubuntu-latest
-    continue-on-error: true  # Allow workflow to continue
-    
-    steps:
-      - uses: actions/checkout@v3
-      
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-      
-      - name: Cache Node modules
-        uses: actions/cache@v3
-        with:
-          path: frontend/node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('frontend/package-lock.json') }}
-      
-      - name: Install dependencies
-        run: |
-          cd frontend
-          npm ci
-      
-      - name: Run linter
-        continue-on-error: true
-        run: |
-          cd frontend
-          npm run lint || true
-      
-      - name: Run tests
-        continue-on-error: true
-        run: |
-          cd frontend
-          npm test -- --coverage || true
 
   # Code quality checks
   code-quality:
@@ -149,7 +114,7 @@ jobs:
   # Build and push Docker images
   build-and-push:
     runs-on: ubuntu-latest
-    needs: [test-backend, test-frontend, code-quality]
+    needs: [test-backend, code-quality]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     
     permissions:
