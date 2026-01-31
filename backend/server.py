@@ -502,10 +502,17 @@ logger = logging.getLogger(__name__)
 
 @app.on_event("startup")
 async def startup_event():
-    await initialize_products()
-    logger.info("ScaleMart API started and products initialized")
+    try:
+        await initialize_products()
+        logger.info("ScaleMart API started and products initialized")
+    except Exception as e:
+        logger.warning(f"Could not initialize Redis products: {e}")
+        logger.info("ScaleMart API started WITHOUT Redis cache - app will work but slower")
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
-    await redis_client.close()
+    try:
+        await redis_client.close()
+    except:
+        pass  # Redis wasn't connected
