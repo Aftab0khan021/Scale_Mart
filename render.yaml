@@ -1,15 +1,5 @@
 services:
-  # MongoDB - Free 512MB storage
-  - type: pserv
-    name: scalemart-mongodb
-    env: docker
-    plan: free
-    dockerfilePath: ./docker/mongodb.Dockerfile
-    envVars:
-      - key: MONGO_INITDB_DATABASE
-        value: scalemart
-
-  # Redis - Free 25MB storage
+  # Redis - Free 25MB storage (Keep on Render for low latency)
   - type: pserv
     name: scalemart-redis
     env: docker
@@ -24,11 +14,10 @@ services:
     buildCommand: cd backend && pip install -r requirements.txt
     startCommand: cd backend && uvicorn server:app --host 0.0.0.0 --port $PORT
     envVars:
+      # MongoDB Atlas - Set manually in Render Dashboard
       - key: MONGO_URL
-        fromService:
-          type: pserv
-          name: scalemart-mongodb
-          property: connectionString
+        sync: false
+      # Redis - Internal Render service
       - key: REDIS_URL
         fromService:
           type: pserv
@@ -36,8 +25,10 @@ services:
           property: connectionString
       - key: DB_NAME
         value: scalemart
+      # JWT Secret - Auto-generated
       - key: JWT_SECRET
         generateValue: true
+      # CORS - Set to Vercel URL in Render Dashboard
       - key: CORS_ORIGINS
         sync: false
     healthCheckPath: /api/health
@@ -50,11 +41,10 @@ services:
     buildCommand: cd backend && pip install -r requirements.txt
     startCommand: cd backend && celery -A server.celery_app worker --loglevel=info --concurrency=2
     envVars:
+      # MongoDB Atlas - Set manually in Render Dashboard
       - key: MONGO_URL
-        fromService:
-          type: pserv
-          name: scalemart-mongodb
-          property: connectionString
+        sync: false
+      # Redis - Internal Render service
       - key: REDIS_URL
         fromService:
           type: pserv
@@ -62,21 +52,3 @@ services:
           property: connectionString
       - key: DB_NAME
         value: scalemart
-
-  # Frontend
-  - type: web
-    name: scalemart-frontend
-    env: static
-    plan: free
-    buildCommand: cd frontend && npm install && npm run build
-    staticPublishPath: ./frontend/build
-    envVars:
-      - key: REACT_APP_BACKEND_URL
-        fromService:
-          type: web
-          name: scalemart-backend
-          property: url
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
